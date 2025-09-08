@@ -1,8 +1,11 @@
 \documentclass[12pt]{article}
-\usepackage{amsmath, amssymb, tikz, listings, xcolor, graphicx, mdframed}
+\usepackage{amsmath, amssymb, tikz, listings, xcolor, graphicx, mdframed, hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage{geometry}
+\usepackage{pgfplots}  % ✅ Required for graph
+\pgfplotsset{compat=1.18}  % ✅ Avoids errors
 \geometry{margin=1in}
+
 \title{Tower of Hanoi: Recursion and Algorithm Design}
 \author{Joshua Terranova}
 \date{\today}
@@ -11,79 +14,75 @@
 
 \maketitle
 
+\tableofcontents
+
 \newpage
-\section{Introduction: The Tower of Hanoi Puzzle}
+\section{Concept Explanation: Tower of Hanoi Rules and Logic}
 \begin{mdframed}
-The Tower of Hanoi is not only a puzzle but also a profound representation of recursive thinking, often introduced in early computer science education to illustrate the concept of divide-and-conquer. The puzzle is set up with three rods—commonly labeled A (source), B (auxiliary), and C (destination)—and a set of \( n \) disks of different sizes which can slide onto any rod. The initial configuration places all \( n \) disks on rod A in decreasing size from bottom to top. The ultimate goal is to move the entire stack to rod C under strict rules that simulate real-world constraints such as physical stacking and order preservation.
-
-Solving the Tower of Hanoi is not merely about moving pieces but about understanding how problems can be broken down into smaller, more manageable subproblems. Each time we attempt to move a disk, we find ourselves faced with a smaller Tower of Hanoi problem that must be resolved first. This inherent recursion is what makes the puzzle such a powerful teaching tool.
-
-The number of moves required to solve the Tower of Hanoi problem grows rapidly as the number of disks increases. For just 3 disks, the solution requires 7 moves; for 4 disks, 15 moves; and for 64 disks—the legendary version said to be operated by monks in a temple—it would take over 580 billion years if one move were made every second. This rapid growth highlights the limitations of recursive algorithms and the importance of analyzing their efficiency.
-
-The Tower of Hanoi is a classic mathematical puzzle attributed to the French mathematician \textit{\'Edouard Lucas} in 1883. The puzzle consists of three vertical rods and a number of disks of different diameters, all initially stacked in ascending order (smallest at the top, largest at the bottom) on one of the rods. The goal of the puzzle is to move the entire stack to another rod, obeying the following rules:
+The Tower of Hanoi is a classic mathematical puzzle consisting of three rods and a set of disks of different sizes. The puzzle begins with all the disks neatly stacked on one rod in ascending order, forming a conical shape. The objective is to move the entire stack to another rod under the following rules:
 \begin{itemize}
-  \item Only one disk can be moved at a time.
-  \item Each move involves taking the upper disk from one of the stacks and placing it on top of another stack or an empty rod.
+  \item Only one disk may be moved at a time.
+  \item Each move must involve taking the top disk from one of the stacks and placing it on another rod.
   \item No disk may be placed on top of a smaller disk.
 \end{itemize}
-Despite its simple rules, the Tower of Hanoi exhibits a rich recursive structure and is commonly used in the study of algorithm design, recursion, and mathematical induction. The puzzle has applications in computer science, particularly in the analysis of recursive algorithms and stack-based problem solving.
-\end{mdframed}
 
-\newpage
-\section{Derivation of the Recursive Formula}
-\begin{mdframed}
-Let $T(n)$ denote the minimum number of moves required to transfer $n$ disks from the source peg to the destination peg under the given rules. We can approach the problem recursively:
-\begin{enumerate}
-  \item Move the top $n-1$ disks to an auxiliary peg. This requires $T(n-1)$ moves.
-  \item Move the largest (bottom) disk directly to the destination peg. This is 1 move.
-  \item Move the $n-1$ disks from the auxiliary peg to the destination peg on top of the largest disk. This again takes $T(n-1)$ moves.
-\end{enumerate}
-Combining these steps, we get the recurrence:
+The problem lends itself naturally to a recursive solution. For \( n \) disks:
+\begin{itemize}
+  \item Move \( n-1 \) disks to the auxiliary rod (recursive subproblem)
+  \item Move the largest disk to the target rod
+  \item Move the \( n-1 \) disks from the auxiliary rod to the target rod (recursive subproblem)
+\end{itemize}
+
+Let \( T(n) \) be the minimum number of moves required. Then:
 \[ T(n) = 2T(n-1) + 1 \]
+\textbf{Closed-form:} \( T(n) = 2^n - 1 \)
 \end{mdframed}
 
-\subsection*{Base Case}
+\subsection*{Proof of Closed-Form Using Induction}
 \begin{mdframed}
-When $n = 1$, the smallest case, we simply move the disk directly from the source peg to the destination peg. Hence,
-\[ T(1) = 1 \]
-\end{mdframed}
+\textbf{Base Case:} \( T(1) = 2^1 - 1 = 1 \)
 
-\subsection*{Recursive Case}
-\begin{mdframed}
-Assuming $T(n-1)$ holds, we can construct the solution for $T(n)$ using the recurrence relation above.
-\end{mdframed}
+\textbf{Inductive Hypothesis:} Assume \( T(k) = 2^k - 1 \)
 
-\subsection*{Closed-form Derivation}
-\begin{mdframed}
-We conjecture a closed-form solution:
-\[ T(n) = 2^n - 1 \]
-This formula suggests that the number of moves doubles with each additional disk (minus one), consistent with exponential growth.
-\end{mdframed}
-
-\newpage
-\subsection*{Proof by Mathematical Induction}
-\begin{mdframed}
-\textbf{Base Case:} $n = 1$
-\[ T(1) = 2^1 - 1 = 1 \]
-This matches the recurrence base case.
-
-\textbf{Inductive Hypothesis:} Assume $T(k) = 2^k - 1$ holds for some $k \geq 1$.
-
-\textbf{Inductive Step:} Prove $T(k+1) = 2^{k+1} - 1$
+\textbf{Inductive Step:}
 \begin{align*}
-  T(k+1) &= 2T(k) + 1 \\
-         &= 2(2^k - 1) + 1 \\
-         &= 2^{k+1} - 2 + 1 \\
-         &= 2^{k+1} - 1
+T(k+1) &= 2T(k) + 1 \\
+&= 2(2^k - 1) + 1 \\
+&= 2^{k+1} - 2 + 1 \\
+&= 2^{k+1} - 1
 \end{align*}
-Thus, by mathematical induction, $T(n) = 2^n - 1$ for all $n \geq 1$.
+\textbf{Conclusion:} By the principle of mathematical induction, the closed-form \( T(n) = 2^n - 1 \) holds for all \( n \geq 1 \).
+\end{mdframed}
+\newpage
+\section{Visualizing the Recursion Tree}
+\begin{mdframed}
+Below is a diagram representing the recursive breakdown of the Tower of Hanoi solution for \( n = 3 \). Each node represents a function call, and the arrows show the sequence of recursive steps taken to solve the subproblems.
 \end{mdframed}
 
+\begin{center}
+\begin{tikzpicture}[level distance=1.5cm,
+  level 1/.style={sibling distance=4.5cm},
+  level 2/.style={sibling distance=2.25cm}]
+  \node {\textbf{Hanoi(3)}}
+    child {node {\textbf{Hanoi(2)}}
+      child {node {\textbf{Hanoi(1)}}}
+      child {node {\small Move disk 2}}
+      child {node {\textbf{Hanoi(1)}}}
+    }
+    child {node {\small Move disk 3}}
+    child {node {\textbf{Hanoi(2)}}
+      child {node {\textbf{Hanoi(1)}}}
+      child {node {\small Move disk 2}}
+      child {node {\textbf{Hanoi(1)}}}
+    };
+\end{tikzpicture}
+\end{center}
+
 \newpage
-\section{Pseudocode and Recursive Structure}
+\section{Algorithm and Pseudocode}
 \begin{mdframed}
-\textbf{Pseudocode of Recursive Solution:}
-\begin{lstlisting}[language=Python, caption=Tower of Hanoi Pseudocode]
+\textbf{Pseudocode:}
+\begin{lstlisting}[language=Python, caption=Recursive Hanoi Algorithm]
 Algorithm Hanoi(n, source, target, auxiliary):
     if n == 1:
         print("Move disk 1 from", source, "to", target)
@@ -93,28 +92,124 @@ Algorithm Hanoi(n, source, target, auxiliary):
         Hanoi(n-1, auxiliary, target, source)
 \end{lstlisting}
 
-This recursive algorithm effectively breaks down the problem into smaller subproblems, always moving $n-1$ disks before and after moving the largest disk.
+\textbf{Explanation:} The algorithm breaks down the problem recursively. Each recursive call handles one part of the movement:
+\begin{itemize}
+  \item Move the top \( n-1 \) disks to the auxiliary rod.
+  \item Move the bottom disk directly to the target.
+  \item Move the \( n-1 \) disks onto the bottom disk.
+\end{itemize}
 
-This recursive process naturally forms a binary recursion tree, where each node represents a call to the Hanoi function with a specific number of disks. Each non-leaf node branches into two recursive calls: one for moving the top \( n-1 \) disks to the auxiliary peg, and another for moving them from the auxiliary to the target peg after the largest disk is moved. The depth of the recursion tree is \( n \), and the total number of calls is \( 2^n - 1 \), which matches the number of moves required.
+\textbf{Proof of Validity:} By structural induction:
+\begin{itemize}
+  \item Base case \( n = 1 \): move one disk directly
+  \item Inductive step: assume it works for \( n-1 \), then prove it works for \( n \)
+\end{itemize}
+
 \end{mdframed}
 
-\textbf{Visual Diagram:}
-\begin{center}
-\begin{tikzpicture}[scale=1.0, every node/.style={scale=0.9}]
-  \node at (0,0) {\textbf{Hanoi}(n)};
-  \node at (-4,-1.5) {\textbf{Hanoi}(n-1)};
-  \node at (0,-1.5) {Move disk n};
-  \node at (4,-1.5) {\textbf{Hanoi}(n-1)};
-  \draw[->] (0,-0.3) -- (-3.5,-1.2);
-  \draw[->] (0,-0.3) -- (0,-1.2);
-  \draw[->] (0,-0.3) -- (3.5,-1.2);
-\end{tikzpicture}
-\end{center}
-
 \newpage
-\section{Worked-Out Example for $n=4$}
+\section{Code Implementation}
 \begin{mdframed}
-Here is a step-by-step move list for solving the Tower of Hanoi with 4 disks:
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  stringstyle=\color{green!40!black},
+  commentstyle=\color{gray},
+  morecomment=[l][\color{magenta}]{\#},
+  breaklines=true,
+  columns=flexible,
+  frame=single,
+  showstringspaces=false,
+  tabsize=2
+}
+
+\begin{lstlisting}[caption=Tower of Hanoi with ASCII Display]
+# Tower of Hanoi - Recursive solution with ASCII visualization
+# This script accepts user input for the number of disks and calculates the steps needed
+# to move the disks from Peg A to Peg C following the Tower of Hanoi rules.
+# It displays each step and the current state of the towers in ASCII notation.
+
+def print_towers(towers):
+    """
+    Displays the current state of the towers in ASCII.
+    
+    Parameters:
+    towers (dict): A dictionary with keys 'A', 'B', 'C' representing pegs,
+                   and values as lists representing disks on each peg.
+    """
+    max_height = max(len(peg) for peg in towers.values())
+    for level in reversed(range(max_height)):
+        for peg in ['A', 'B', 'C']:
+            if level < len(towers[peg]):
+                # Print the disk number at the current level of the peg
+                print(f" {towers[peg][level]} ", end="\t")
+            else:
+                # Print a vertical bar if no disk is present at this level
+                print(" | ", end="\t")
+        print()
+    print(" A \t B \t C ")
+    print("-" * 24)
+
+def hanoi(n, source, target, auxiliary, towers):
+    """
+    Recursive function to solve Tower of Hanoi problem.
+    
+    Parameters:
+    n (int): Number of disks to move.
+    source (str): The peg to move disks from.
+    target (str): The peg to move disks to.
+    auxiliary (str): The peg used as auxiliary storage.
+    towers (dict): The current state of the towers.
+    """
+    if n == 1:
+        # Move the top disk from source to target
+        disk = towers[source].pop()
+        towers[target].append(disk)
+        print(f"Move disk 1 from {source} to {target}")
+        print_towers(towers)
+    else:
+        # Move n-1 disks from source to auxiliary, so they are out of the way
+        hanoi(n - 1, source, auxiliary, target, towers)
+        # Move the nth disk from source to target
+        disk = towers[source].pop()
+        towers[target].append(disk)
+        print(f"Move disk {n} from {source} to {target}")
+        print_towers(towers)
+        # Move the n-1 disks that we left on auxiliary to target
+        hanoi(n - 1, auxiliary, target, source, towers)
+
+def main():
+    """
+    Main function to run the Tower of Hanoi program.
+    """
+    print("Tower of Hanoi - Recursive with ASCII Visualization")
+    n = int(input("Enter number of disks: "))
+    # Initialize towers with disks on peg A, and pegs B and C empty
+    towers = {
+        'A': list(reversed(range(1, n + 1))),
+        'B': [],
+        'C': []
+    }
+    
+    print("Initial State:")
+    print_towers(towers)
+    # Start the recursive solution
+    hanoi(n, 'A', 'C', 'B', towers)
+
+if __name__ == "__main__":
+    main()
+\end{lstlisting}
+\textit{Note:} Code is recursive, accepts input, prints the full move sequence, and uses ASCII visualization.
+If by any chance there are some errors with the code, I have provided a backup version on my GitHub page. 
+
+GitHub: github.com/thatrandomasiandev/LaTeX-Projects/tree/main
+
+\end{mdframed}
+\newpage
+\section{Worked-Out Example: n = 4}
+\begin{mdframed}
+For \( n = 4 \), the sequence of 15 moves is:
 \begin{enumerate}
   \item Move disk 1 from A to C
   \item Move disk 2 from A to B
@@ -132,123 +227,47 @@ Here is a step-by-step move list for solving the Tower of Hanoi with 4 disks:
   \item Move disk 2 from A to B
   \item Move disk 1 from C to B
 \end{enumerate}
-This completes the puzzle in exactly $2^4 - 1 = 15$ moves.
 \end{mdframed}
-
 \newpage
-\section{Proof of Correctness}
+\section{Complexity Analysis and Efficiency}
 \begin{mdframed}
-We prove the algorithm is correct using structural induction.
 
-\subsection*{Base Case}
-For $n = 1$, the algorithm performs one move from source to target, satisfying the requirement.
+My algorithm for the Tower of Hanoi uses a recursive approach with the recurrence:
 
-\subsection*{Inductive Step}
-Assume correctness for $n = k$: the algorithm correctly moves $k$ disks according to the rules.
+\[
+T(n) = 2T(n-1) + 1
+\]
 
-For $n = k + 1$, the algorithm:
-\begin{itemize}
-  \item Recursively moves $k$ disks to auxiliary peg (by assumption, this is valid).
-  \item Moves the $k+1$th (largest) disk directly to the target peg.
-  \item Recursively moves the $k$ disks from auxiliary to target.
-\end{itemize}
-Each of these operations respects the problem constraints. Hence, the algorithm correctly solves the puzzle for all $n$.
+Solving this gives the closed-form:
+
+\[
+T(n) = 2^n - 1
+\]
+
+So the time complexity is:
+
+\[
+\mathcal{O}(2^n)
+\]
+
+
+\textbf{Reflection on Efficiency:}
+
+Although the algorithm is exponential, it is still efficient in recursion. In my implementation, each recursive call solves a distinct subproblem exactly once. For example, when calling \texttt{hanoi(n-1, ...)}, it completes that entire subproblem before moving on.
+
+In contrast, the recursive Fibonacci algorithm repeatedly recalculates the same values. For example, \texttt{fib(5)} will recompute \texttt{fib(4)} and \texttt{fib(3)} multiple times, leading to a huge number of redundant calls.
+
+\textbf{Key Difference:}
+\begin{enumerate}
+    \item \textbf{My algorithm (Hanoi)}: No repeated work — each move is unique and necessary.
+    \item \textbf{Fibonacci}: Many repeated subproblems — highly inefficient without memorization.
+\end{enumerate}
+
+
+
+\textbf{Conclusion:} 
+Even though both algorithms are recursive and exponential, my Tower of Hanoi algorithm is more efficient than the recursive Fibonacci method because it avoids redundant computations.
 \end{mdframed}
-
-\newpage
-\section{Time Complexity and Algorithm Efficiency}
-\begin{mdframed}
-\subsection*{Recurrence and Solution}
-The recurrence relation:
-\[ T(n) = 2T(n-1) + 1 \]
-expands as:
-\[ T(n) = 2^n - 1 \]
-This yields a time complexity of:
-\[ T(n) \in \mathcal{O}(2^n) \]
-The algorithm has exponential growth, making it infeasible for large $n$ (e.g., $T(64) > 10^{19}$).
-
-\subsection*{Comparison to Fibonacci Algorithm}
-The naive Fibonacci algorithm is defined as:
-\[ F(n) = F(n-1) + F(n-2) \]
-This algorithm recalculates subproblems multiple times, leading to inefficiency.
-
-In contrast, the Tower of Hanoi algorithm does not recompute subproblems; each recursive call performs unique work. Therefore, while both have exponential time complexity, Hanoi is more efficient in practice and lends itself to easier optimization or iteration.
-\end{mdframed}
-
-
-\newpage
-\newpage
-\newpage
-\section{Interactive Code Implementation with ASCII Visualization}
-\lstset{
-  language=Python,
-  basicstyle=\ttfamily\footnotesize,
-  keywordstyle=\color{blue},
-  stringstyle=\color{green!40!black},
-  commentstyle=\color{gray},
-  morecomment=[l][\color{magenta}]{\#},
-  breaklines=true,
-  columns=flexible,
-  frame=single,
-  showstringspaces=false,
-  tabsize=2
-}
-\begin{mdframed}
-The following Python 3 program solves the Tower of Hanoi recursively, accepts user input, and displays peg states using ASCII graphics.
-
-\begin{lstlisting}[caption=Tower of Hanoi with ASCII Display]
-def print_towers(towers):
-    max_height = max(len(peg) for peg in towers.values())
-    for level in reversed(range(max_height)):
-        for peg in ['A', 'B', 'C']:
-            if level < len(towers[peg]):
-                print(f" {towers[peg][level]} ", end="\t")
-            else:
-                print(" | ", end="\t")
-        print()
-    print(" A \t B \t C ")
-    print("-" * 24)
-
-def hanoi(n, source, target, auxiliary, towers):
-    if n == 1:
-        disk = towers[source].pop()
-        towers[target].append(disk)
-        print(f"Move disk 1 from {source} to {target}")
-        print_towers(towers)
-    else:
-        hanoi(n - 1, source, auxiliary, target, towers)
-        disk = towers[source].pop()
-        towers[target].append(disk)
-        print(f"Move disk {n} from {source} to {target}")
-        print_towers(towers)
-        hanoi(n - 1, auxiliary, target, source, towers)
-
-def main():
-    print("Tower of Hanoi - Recursive with ASCII Visualization")
-    n = int(input("Enter number of disks: "))
-    towers = {
-        'A': list(reversed(range(1, n + 1))),
-        'B': [],
-        'C': []
-    }
-    print("Initial State:")
-    print_towers(towers)
-    hanoi(n, 'A', 'C', 'B', towers)
-
-if __name__ == "__main__":
-    main()
-\end{lstlisting}
-\end{mdframed}
-\newpage
-\begin{mdframed}
-\textbf{Key Features:}
-\begin{itemize}
-  \item Accepts user input for disk count.
-  \item Displays every move with ASCII graphics.
-  \item Fully recursive with readable colored syntax.
-\end{itemize}
-\end{mdframed}
-
 
 
 
